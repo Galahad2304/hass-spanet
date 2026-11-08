@@ -26,6 +26,34 @@ Preferences are stored **per spa ID and pump number**, supporting multiple spas 
 
 For a controllable two-speed pump, the additional mode selector offers **Off**, **Low**, **High**, and **Auto** (only when the controller reports Auto support). A read-only mode sensor exposes the cloud-reported mode.
 
+### Technical reference: SpaNET pump API mode IDs
+
+These mappings were identified by inspecting the pump-control implementation in the **official SpaNET SmartLINK Android app (v2.0.12)** and are now reflected in this integration's API wrapper and regression tests. The **Off, Auto, Low and High** modes were also exercised against a physical Pembroke two-speed pump, with the motor and official app responding as expected.
+
+| Command | API `modeId` | How used |
+| --- | ---: | --- |
+| On | `1` | Existing legacy On/Off switch command |
+| Off | `2` | Both legacy switch and new mode selector |
+| Auto | `3` | Two-speed pump selector, when the controller supports Auto |
+| Low | `5` | Two-speed pump selector |
+| High | `6` | Two-speed pump selector |
+
+The endpoint is `PUT /PumpsAndBlower/SetPump/{pumpId}`, with a JSON body containing `deviceId`, `modeId`, and `pumpVariableSpeed`.
+
+**Important: `pumpVariableSpeed` is a separate request field from `modeId`.** The original On/Off switch keeps `pumpVariableSpeed: 0`; the new two-speed selector sends `pumpVariableSpeed: 5` for all its modes (including Off). The two values of `5` in `modeId: 5` (Low) and `pumpVariableSpeed: 5` should not be conflated.
+
+For example, requesting **High** with the new selector sends:
+
+```json
+{
+  "deviceId": "<spa-device-id>",
+  "modeId": 6,
+  "pumpVariableSpeed": 5
+}
+```
+
+**Scope of validation:** The numeric mapping is based on the inspected app version and the tested hardware. The On (`1`) path is preserved from the pre-existing integration and verified by payload regression tests; the four selector modes were validated on the Pembroke pump. No meaning is asserted for unlisted IDs (including `4`), and this should not be assumed to apply to every SpaNET controller or firmware variant. The cloud's reported *status strings* are a separate readback mechanism, not these command IDs.
+
 After a command sent through the new selector, SpaNET attempts an API-confirmed readback after approximately **7 seconds**, with **one bounded retry** after a further 15 seconds if needed. It does not display an optimistic state. Normal pump polling remains at approximately **five minutes**, so changes made through the official app may still take longer to appear in Home Assistant.
 
 ### More reliable startup
