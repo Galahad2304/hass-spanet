@@ -86,6 +86,7 @@ The expanded mode selector showing the four supported choices:
 
 ## Testing and compatibility
 
+- **Home Assistant version:** Tested on **Home Assistant Core 2026.10.4**. Other Home Assistant versions have not been individually validated; this is a tested version, not a declared minimum requirement.
 - **Physical test hardware:** Pembroke Spa using SmartLINK V2, with a two-speed Pump 1.
 - **Confirmed:** Off, Auto, Low and High commands against the official SpaNET app and physical motor; mode sensor feedback approximately **7 seconds** in the observed High and Off tests.
 - **GUI test:** Automatic detection selected and saved through Home Assistant; SpaNET reloaded successfully and all **24 existing Pembroke entities** remained available, including the original Pump 1 switch and the new selector/sensor.
